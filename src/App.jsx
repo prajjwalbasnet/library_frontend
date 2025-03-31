@@ -1,22 +1,22 @@
-import { Route, Routes } from "react-router-dom"
-import Home from "./pages/Home"
-import Login from './pages/Login'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import { ToastContainer } from "react-toastify";
+import { AuthProvider } from "./context/AuthContext";
+import "react-toastify/dist/ReactToastify.css";
+import VerifyEmail from "./pages/VerifyEmail";
 
 function App() {
-
-
   return (
-    <>
-      <Routes>
-        <Route path="/" element={<Home />}/>
-        <Route path="/login" element={<Login />}/>
-        
-
-
-      </Routes>
-      
-    </>
-  )
+    <AuthProvider> 
+        <ToastContainer position="top-right" autoClose={3000} />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/verify_email" element={<VerifyEmail />} />
+        </Routes>
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;
