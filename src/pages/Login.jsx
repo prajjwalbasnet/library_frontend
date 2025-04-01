@@ -98,7 +98,8 @@ const Login = () => {
           studentId: formData.studentId,
         })
         toast.success(response.message)
-        navigate(`/verify?userId=${response.data.userId}`)
+        localStorage.setItem('registration_email', formData.email)
+        navigate(`/verify_email?userId=${response.userId}`)
       } catch (error) {
         console.log(error)
         toast.error(error?.response?.data?.message || "Registration failed")
