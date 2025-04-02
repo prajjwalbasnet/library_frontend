@@ -81,6 +81,55 @@ export const AuthProvider = ({ children }) => {
         }
     }
 
+    const loginUser = async(userData) => {
+
+        setLoading(true)
+        setError(null)
+         
+        try {
+            
+            const response = await axios.post(`${API_URL}/api/user/login`, userData)
+
+            if(response.data.user){
+                setUser(response.data.user)
+            }
+
+            if(response.data.token){
+                localStorage.setItem('auth_token', response.data.token)
+                axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`
+            }
+
+            setLoading(false)
+            console.log(response.data.user)
+            return response.data
+        } catch (error) {
+            console.error('Login error:', error)
+            setError(error.response?.data?.message || 'Login failed')
+            setLoading(false)
+            throw error
+        }
+    }
+
+    const logout = async () => {
+        try {
+          // Call the backend logout endpoint with proper error handling
+          await axios.post(`${API_URL}/api/user/logout`);
+          console.log('Logout API call successful');
+        } catch (error) {
+          console.error('Error during logout:', error);
+          // Don't let API errors prevent logout
+        } finally {
+          // Always clear local data regardless of server response
+          setUser(null);
+          localStorage.removeItem('auth_token');
+          delete axios.defaults.headers.common['Authorization'];
+          console.log('Local logout completed');
+        }
+        
+        return true;
+      };
+      
+
 
     return (
         <AuthContext.Provider value={
@@ -90,7 +139,9 @@ export const AuthProvider = ({ children }) => {
                 error,
                 registerUser,
                 verifyEmail,
-                resendVerificationCode
+                resendVerificationCode,
+                loginUser,
+                logout,
             }
         }>
             {children}

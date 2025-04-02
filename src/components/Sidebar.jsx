@@ -6,7 +6,9 @@ import { AiFillBook } from "react-icons/ai";
 import { FaUsers } from "react-icons/fa";
 import { RiAdminFill } from "react-icons/ri";
 import { Button } from "@/components/ui/button"
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-toastify';
 
 
 const SidebarItem = ({ icon: Icon, label, to, active }) => (
@@ -25,6 +27,9 @@ const SidebarItem = ({ icon: Icon, label, to, active }) => (
 
 const Sidebar = () => {
 
+    const { logout } = useAuth()
+    const navigate = useNavigate()
+
     const location = useLocation()
     const [activeItem, setActiveItem] = useState('/')
 
@@ -40,6 +45,14 @@ const Sidebar = () => {
         { path: '/users', label: 'Users', icon: FaUsers },
         { path: '/add-admin', label: 'Add new Admin', icon: RiAdminFill }
     ];
+
+    const logoutUser = async() => {
+        logout()
+        toast.success('Logged out successfully.')
+        setTimeout(()=>{
+            navigate('/login')
+        }, 1000)
+    } 
 
 
     return (
@@ -62,7 +75,9 @@ const Sidebar = () => {
             </div>
 
             <div className='mt-auto p-4'>
-                <Button className="bg-blue-900 hover:bg-blue-800 w-full text-white">Logout</Button>
+                <Button className="bg-blue-900 hover:bg-blue-800 w-full text-white"
+                onClick={logoutUser}               
+                >Logout</Button>
             </div>
 
         </div>

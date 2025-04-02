@@ -14,7 +14,7 @@ import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
 
-  const { loading, registerUser, error} = useAuth()
+  const { loading, registerUser, error, loginUser} = useAuth()
   const navigate = useNavigate()
 
   const [isLogin, setIsLogin] = useState(true)
@@ -87,7 +87,21 @@ const Login = () => {
     }
 
     if(isLogin){
-      toast.info("Login not implemented yet")
+      try {
+        const response = await loginUser({
+          email: formData.email,
+          password: formData.password
+        })
+
+        toast.success(response.message)
+
+        setTimeout(()=> {
+          navigate('/')
+        }, 1000)
+      } catch (error) {
+        console.log(error)
+        toast.error(error?.response?.data?.message || "Login failed")
+      }
     }
     else{
       try {
