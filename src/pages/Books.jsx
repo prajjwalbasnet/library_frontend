@@ -22,6 +22,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import axios from 'axios'
 import { FaEdit } from "react-icons/fa";
 import { RiDeleteBinFill } from "react-icons/ri";
@@ -33,6 +44,10 @@ const Books = () => {
   const [error, setError] = useState(null)
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [currentBookId, setCurrentBookId] = useState(null)
+  const [deleteBookId, setDeleteBookId] = useState(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   const [books, setBooks] = useState([])
 
@@ -108,27 +123,36 @@ const Books = () => {
     }
   }
 
-  const submitHandler = async (e) => {
-    e.preventDefault();
-
+  const validateForm = () => {
     if (!formData.title.trim()) {
-      setError('Title is required');
-      return;
+      setError('Title is required')
+      return false
     }
     
     if (!formData.author.trim()) {
-      setError('Author is required');
-      return;
+      setError('Author is required')
+      return false
     }
     
     if (!formData.genre.trim()) {
-      setError('Genre is required');
-      return;
+      setError('Genre is required')
+      return false
     }
     
     if (!formData.totalCopies || isNaN(formData.totalCopies) || parseInt(formData.totalCopies) < 1) {
-      setError('Valid number of copies is required');
-      return;
+      setError('Valid number of copies is required')
+      return false
+    }
+
+    return true
+  }
+
+  const submitHandler = async (e) => {
+    e.preventDefault();
+
+    if(!validateForm()){
+      setError('Author is required')
+      return false
     }
 
     try {
@@ -147,15 +171,41 @@ const Books = () => {
         bookFormData.append('coverImage', coverImage)
       }
 
-      const response = await axios.post(
-        `${API_URL}/api/book/addBook`, 
-        bookFormData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
+      let response
+
+      if(isEditMode){
+
+        response = await axios.put(
+          `${API_URL}/api/book/update/${currentBookId}`,
+          bookFormData, {
+            headers: {
+              'Content-Type': 'multipart/form_data'
+            }
           }
+        )
+
+        if (response.data.success){
+          toast.success('Book updated successfully')
         }
-      );
+      }
+
+      else{
+        response = await axios.post(
+          `${API_URL}/api/book/addBook`, 
+          bookFormData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form_data'
+            }
+          }
+        )
+        if (response.data.success) {
+          toast.success('Book added successfully!')
+        }
+
+      }
+
+      
 
       if (response.data.success) {
         // Reset form data
@@ -177,7 +227,6 @@ const Books = () => {
         // Refresh book list
         fetchBooks();
 
-        toast.success('Book Added Successfully!')
       }
     } catch (error) {
       console.error('Error adding book:', error);
@@ -185,6 +234,56 @@ const Books = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleDelete = async() => {
+    if(!deleteBookId){
+      toast.error("Book Id missing")
+    }
+
+    try {
+      setLoading(true)
+      const response = await axios.delete(`${API_URL}/api/book/delete/${deleteBookId}`)
+
+      if(response.data.success){
+        toast.success('Book deleted successfully')
+        fetchBooks()
+      } else {
+        toast.error(response.data.message || 'Failed to delete book')
+      }
+    } catch (error) {
+      console.error('Error deleting book:', error)
+      toast.error(error.response?.data?.message || 'An error occurred while deleting the book')
+    } finally{
+      setLoading(false)
+    }
+  }
+
+  const openDeleteConfirmation = (bookId) => {
+    setDeleteBookId(bookId)
+    setIsDeleteDialogOpen(true)
+  }
+
+
+  const handleEdit = async (book) => {
+
+    setIsEditMode(true)
+    setCurrentBookId(book._id)
+
+    setFormData({
+      title: book.title || '',
+      author: book.author || '',
+      description: book.description || '',
+      genre: book.genre || '',
+      totalCopies: book.totalCopies || '',
+    })
+    
+    if (book.coverImage && book.coverImage.url) {
+      setImagePreview(book.coverImage.url)
+    }
+
+    setIsDialogOpen(true)
+
   }
 
   return (
@@ -202,13 +301,18 @@ const Books = () => {
                 <div className='flex justify-end pr-3'>
                   <Dialog open={isDialogOpen} onOpenChange={handleDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button className='text-white bg-blue-800 hover:bg-blue-700'>Add Book</Button>
+                      <Button 
+                        className='text-white bg-blue-800 hover:bg-blue-700'
+                        onClick={()=>setIsEditMode(false)}
+                        >Add Book</Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[425px]">
                       <DialogHeader>
-                        <DialogTitle>Add a new Book</DialogTitle>
+                        <DialogTitle>{isEditMode? 'Edit Book':'Add a new Book'}</DialogTitle>
                         <DialogDescription>
-                          Fill in the details to add a new book to the library.
+                          {isEditMode 
+                          ? 'Update the book information below.' 
+                          : 'Fill in the details to add a new book to the library.'}
                         </DialogDescription>
                       </DialogHeader>
                       
@@ -264,7 +368,9 @@ const Books = () => {
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 fill-white stroke-blue-800" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                   </svg>
-                                  <span className="text-gray-600 font-medium">Cover Image</span>
+                                  <span className="text-gray-600 font-medium">
+                                    {isEditMode ? 'Change Cover Image' : 'Cover Image'}
+                                  </span>
                                 </>
                               )}
                             </label>
@@ -281,9 +387,9 @@ const Books = () => {
                             <Button 
                               type="submit" 
                               className='text-white bg-blue-800 hover:bg-blue-700 w-20'
-                              disabled={loading}
+                              disabled={loading}        
                             >
-                              {loading ? '...' : 'Add'}
+                              {isEditMode ? 'Update' : 'Add'}
                             </Button>
                           </DialogFooter>
                         </div>
@@ -339,8 +445,11 @@ const Books = () => {
                                 </TableCell>
                                 <TableCell>
                                   <div className='flex gap-5 items-center justify-center'>
-                                    <FaEdit className='text-2xl text-gray-500 hover:text-gray-400 cursor-pointer'/>
-                                    <RiDeleteBinFill className='text-2xl text-orange-700 hover:text-orange-800 cursor-pointer'/>
+                                    <FaEdit 
+                                      className='text-2xl text-gray-500 hover:text-gray-400 cursor-pointer'
+                                      onClick={()=>handleEdit(item)}/>
+                                    <RiDeleteBinFill className='text-2xl text-orange-700 hover:text-orange-800 cursor-pointer'
+                                    onClick={()=> openDeleteConfirmation(item._id)}/>
                                   </div>
                                 </TableCell>
                               </TableRow>
@@ -352,6 +461,28 @@ const Books = () => {
                   )
                 }
             </div>
+
+             {/* Delete Confirmation Dialog */}
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure you want to delete this book?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the book from the library.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleDelete}
+                    className="bg-red-600 hover:bg-red-700"
+                    disabled={loading}
+                  >
+                    {loading ? "Deleting..." : "Delete"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
         </div>
     </div>
   )
