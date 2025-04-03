@@ -10,6 +10,7 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
 
+
     const API_URL = import.meta.env.VITE_BACKEND_URL
 
     const registerUser = async (userData) => {
@@ -128,7 +129,9 @@ export const AuthProvider = ({ children }) => {
         
         return true;
       };
+
       
+       
 
 
     return (
