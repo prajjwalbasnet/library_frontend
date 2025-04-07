@@ -6,6 +6,8 @@ import { AuthProvider } from "./context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
 import VerifyEmail from "./pages/VerifyEmail";
 import Books from "./pages/Books";
+import Catalog from "./pages/Catalog";
+import Users from "./pages/Users";
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
           <Route path="/books" element={<Books />} />
           <Route path="/login" element={<Login />} />
           <Route path="/verify_email" element={<VerifyEmail />} />
+          <Route path="/catalog" element={<Catalog />} />
+          <Route path="/users" element={<Users />} />
         </Routes>
     </AuthProvider>
   );

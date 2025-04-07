@@ -9,21 +9,52 @@ import { Button } from "@/components/ui/button"
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+  } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { MdAdminPanelSettings } from "react-icons/md";
+import { RxAvatar } from "react-icons/rx";
+  
 
 
-const SidebarItem = ({ icon: Icon, label, to, active }) => (
-    <NavLink 
-      to={to} 
-      className={({ isActive }) => 
-        `flex flex-row items-center gap-2 hover:bg-gray-100 p-2 rounded-md ${isActive ? 'bg-gray-100' : ''}`
-      }
-    >
-      <div className={`relative rounded-sm flex items-center justify-center w-8 h-8 ${active ? 'bg-blue-900' : 'bg-gray-300'}`}>
-        <Icon className={`text-xl absolute ${active ? 'text-white' : 'text-gray-600'}`} />
-      </div>
-      <p className={`text-gray-600 text-md ${active ? 'font-bold': 'font-normal'}`}>{label}</p>
-    </NavLink>
-  );
+const SidebarItem = ({ icon: Icon, label, to, active, onClick }) => {
+
+    if(onClick){
+        return (
+            <div 
+                onClick={onClick}
+                className={`flex flex-row items-center gap-2 hover:bg-gray-100 p-2 rounded-md cursor-pointer ${active ? 'bg-gray-100' : ''}`}
+            >
+                <div className={`relative rounded-sm flex items-center justify-center w-8 h-8 ${active ? 'bg-blue-900' : 'bg-gray-300'}`}>
+                <Icon className={`text-xl absolute ${active ? 'text-white' : 'text-gray-600'}`} />
+                </div>
+                <p className={`text-gray-600 text-md ${active ? 'font-bold': 'font-normal'}`}>{label}</p>
+            </div>
+        )
+    } else {
+        return (
+            <NavLink 
+                to={to} 
+                className={({ isActive }) => 
+                    `flex flex-row items-center gap-2 hover:bg-gray-100 p-2 rounded-md ${isActive ? 'bg-gray-100' : ''}`
+                }
+                >
+                <div className={`relative rounded-sm flex items-center justify-center w-8 h-8 ${active ? 'bg-blue-900' : 'bg-gray-300'}`}>
+                    <Icon className={`text-xl absolute ${active ? 'text-white' : 'text-gray-600'}`} />
+                </div>
+                <p className={`text-gray-600 text-md ${active ? 'font-bold': 'font-normal'}`}>{label}</p>
+            </NavLink>
+        )
+    }
+
+}
 
 const Sidebar = () => {
 
@@ -32,6 +63,24 @@ const Sidebar = () => {
 
     const location = useLocation()
     const [activeItem, setActiveItem] = useState('/')
+
+    const [isAddAdminOpen, setIsAddAdminOpen] = useState(false)
+    const [addAdminForm, setAddAdminForm] = useState({
+        name: '',
+        email: '',
+        password: '',
+    })
+
+    const handleAdminFormChange = (e) => {
+        e.preventDefault()
+
+        const [name, value] = e.target
+
+        setAddAdminForm(()=> ({
+            ...prev,
+            name: value
+        }))
+    }
 
     useEffect(()=>{
         setActiveItem(location.pathname)
@@ -43,7 +92,7 @@ const Sidebar = () => {
         { path: '/books', label: 'Books', icon: IoBookSharp },
         { path: '/catalog', label: 'Catalog', icon: AiFillBook },
         { path: '/users', label: 'Users', icon: FaUsers },
-        { path: '/add-admin', label: 'Add new Admin', icon: RiAdminFill }
+        // { path: '/add-admin', label: 'Add new Admin', icon: RiAdminFill }
     ];
 
     const logoutUser = async() => {
@@ -72,6 +121,55 @@ const Sidebar = () => {
                         active={activeItem === item.path}
                     />
                 ))}
+
+                {
+                    <Dialog open={isAddAdminOpen} onOpenChange={setIsAddAdminOpen}>
+                    <DialogTrigger asChild>
+                      <div>
+                        <SidebarItem
+                            icon={RiAdminFill}
+                            label='Add New Admin'
+                            active= {activeItem === '/add-admin'}
+                            onClick={()=>setIsAddAdminOpen(true)}
+                        />
+                      </div>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>
+                            <div className='flex items-center gap-4 '>
+                                <div className='flex relative  bg-gray-300 h-8 w-8 rounded-lg items-center justify-center'>
+                                    <MdAdminPanelSettings className='absolute text-xl text-blue-800'/>
+                                </div>
+                                <p>Add New Admin</p>
+                            </div>
+                            <hr className='mt-3'/>
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="flex flex-col gap-5">
+                          <div className='flex items-center justify-center w-full'>
+                            <div className='flex relative h-20 w-20 bg-gray-300 items-center justify-center rounded-full'>
+                                <RxAvatar className='text-6xl text-gray-600'/>
+                            </div>
+                          </div>
+
+                          <div className='flex flex-col gap-3'>
+                            <Input className='w-full' placeholder='Enter Admin Name'/>
+                            <Input className='w-full' placeholder='Enter Admin email'/>
+                            <Input className='w-full' placeholder='Enter Admin Password'/>
+                          </div>
+                          
+                        </div>
+                        
+                      </div>
+                      <DialogFooter className='flex items-center gap-3'>
+                        <Button onClick={()=>setIsAddAdminOpen(false)} className='w-[100px] text-gray-600 bg-gray-300 hover:bg-gray-200 cursor-pointer' type="submit">Close</Button>
+                        <Button className='w-[100px] text-white bg-blue-800 hover:bg-blue-700 cursor-pointer' type="submit">Add</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>              
+                }
             </div>
 
             <div className='mt-auto p-4'>
