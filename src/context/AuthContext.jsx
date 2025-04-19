@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 
 const AuthContext = createContext();
@@ -96,8 +96,10 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.post(`${API_URL}/api/user/login`, userData);
 
-      if (response.data.user) {
-        setUser(response.data.user);
+      if (response.data.success) {
+        if (response.data.user) {
+          setUser(response.data.user);
+        }
       }
 
       if (response.data.token) {
@@ -108,13 +110,36 @@ export const AuthProvider = ({ children }) => {
       }
 
       setLoading(false);
-      // console.log(response.data.user);
+      console.log(response.data.user);
       return response.data;
     } catch (error) {
       console.error("Login error:", error);
       setError(error.response?.data?.message || "Login failed");
       setLoading(false);
       throw error;
+    }
+  };
+
+  const loadUserFromToken = async () => {
+    const token = localStorage.getItem("auth_token");
+    if (!token) return false;
+
+    try {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      const response = await axios(`${API_URL}/api/user/me`);
+
+      if (response.data.success && response.data.user) {
+        setUser(response.data.user);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Failed to load user from token:", error);
+      // Clear invalid token
+      localStorage.removeItem("auth_token");
+      delete axios.defaults.headers.common["Authorization"];
+      return false;
     }
   };
 
@@ -157,9 +182,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  useEffect(() => {
+    // Check if user is already logged in when app loads
+    const checkAuth = async () => {
+      setLoading(true);
+      await loadUserFromToken();
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
+        loadUserFromToken,
         user,
         loading,
         error,

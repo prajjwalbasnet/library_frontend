@@ -34,8 +34,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import axios from "axios";
-import { FaEdit } from "react-icons/fa";
-import { RiDeleteBinFill } from "react-icons/ri";
+import { MdAssignment } from "react-icons/md";
 import { FaImage } from "react-icons/fa6";
 import { toast } from "react-toastify";
 
@@ -48,6 +47,7 @@ const Books = () => {
   const [currentBookId, setCurrentBookId] = useState(null);
   const [deleteBookId, setDeleteBookId] = useState(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [studentEmail, setStudentEmail] = useState("");
 
   const [books, setBooks] = useState([]);
 
@@ -295,6 +295,59 @@ const Books = () => {
     setIsDialogOpen(true);
   };
 
+  const recordBook = async (bookId) => {
+    if (!studentEmail || !studentEmail.trim()) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        `${API_URL}/api/borrow/record/${bookId}`,
+        { email: studentEmail },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("Book borrowed successfully");
+        setStudentEmail(""); // Reset the email input
+        fetchBooks(); // Refresh book list to update availability
+      } else {
+        toast.error(response.data.message || "Failed to borrow book");
+      }
+    } catch (error) {
+      console.error("Error recording book:", error);
+
+      if (error.response) {
+        switch (error.response.status) {
+          case 404:
+            if (error.response.data.message.includes("User not found")) {
+              toast.error("User not found with this email");
+            } else if (error.response.data.message.includes("Book not found")) {
+              toast.error("Book not found");
+            } else {
+              toast.error(error.response.data.message);
+            }
+            break;
+          case 400:
+            toast.error(error.response.data.message);
+            break;
+          default:
+            toast.error("An error occurred while borrowing the book");
+        }
+      } else {
+        toast.error("Network error. Please check your connection.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex h-screen w-screen overflow-hidden">
       {/* ------Sidebar------- */}
@@ -445,6 +498,7 @@ const Books = () => {
                     <TableHead>Books</TableHead>
                     <TableHead>Author</TableHead>
                     <TableHead>Availability</TableHead>
+                    <TableHead className="text-center">Record Book</TableHead>
                     <TableHead className="w-[30px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -487,16 +541,66 @@ const Books = () => {
                             {!item.availability ? "Not available" : "Available"}
                           </span>
                         </TableCell>
+                        <TableCell className="text-center">
+                          {
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <MdAssignment className="text-2xl text-blue-800 cursor-pointer" />
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-[425px]">
+                                <DialogHeader>
+                                  <DialogTitle>Record Book</DialogTitle>
+                                  <DialogDescription>
+                                    Enter the email of the student that you want
+                                    to assign this book
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="grid gap-4 py-4">
+                                  <div className="grid grid-cols-4 items-center gap-4">
+                                    <Input
+                                      id="email"
+                                      value={studentEmail}
+                                      onChange={(e) =>
+                                        setStudentEmail(e.target.value)
+                                      }
+                                      placeholder="student@example.com"
+                                      type="email"
+                                      className="col-span-3"
+                                    />
+                                  </div>
+                                </div>
+                                <DialogFooter>
+                                  <Button
+                                    type="button"
+                                    onClick={() => recordBook(item._id)}
+                                    disabled={loading}
+                                    className="bg-blue-800 hover:bg-blue-700 text-white"
+                                  >
+                                    {loading ? "Assigning..." : "Assign Book"}
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                          }
+                        </TableCell>
                         <TableCell>
                           <div className="flex gap-5 items-center justify-center">
-                            <FaEdit
-                              className="text-2xl text-gray-500 hover:text-gray-400 cursor-pointer"
+                            <Button
+                              className="cursor-pointer bg-blue-800 text-white hover:bg-blue-700"
+                              variant="ghost"
+                              size="sm"
                               onClick={() => handleEdit(item)}
-                            />
-                            <RiDeleteBinFill
-                              className="text-2xl text-orange-700 hover:text-orange-800 cursor-pointer"
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              className="cursor-pointer bg-[#CF0F47] text-white hover:bg-red-600"
+                              variant="ghost"
+                              size="sm"
                               onClick={() => openDeleteConfirmation(item._id)}
-                            />
+                            >
+                              Delete
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>

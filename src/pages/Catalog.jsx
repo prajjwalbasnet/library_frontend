@@ -89,7 +89,6 @@ const Catalog = () => {
 
   useEffect(() => {
     fetchborrowedData();
-    console.log("Auth token:", localStorage.getItem("auth_token"));
   }, []);
 
   return (
