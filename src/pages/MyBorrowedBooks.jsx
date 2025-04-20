@@ -26,10 +26,6 @@ const MyBorrowedBooks = () => {
     loadUser();
   }, []);
 
-  useEffect(() => {
-    console.log("Current user:", user);
-  }, [user]);
-
   return (
     <div className="flex h-screen w-screen overflow-hidden">
       {/* ------Sidebar------- */}

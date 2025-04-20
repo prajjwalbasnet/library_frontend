@@ -193,6 +193,9 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
+  const isAdmin = user && user.role === "Admin";
+  const isUser = user && user.role === "User";
+
   return (
     <AuthContext.Provider
       value={{
@@ -208,6 +211,8 @@ export const AuthProvider = ({ children }) => {
         API_URL,
         getAllUsers,
         userList,
+        isAdmin,
+        isUser,
       }}
     >
       {children}

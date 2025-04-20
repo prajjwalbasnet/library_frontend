@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
+import { RiBookShelfLine } from "react-icons/ri";
 import {
   Dialog,
   DialogContent,
@@ -85,7 +86,7 @@ const SidebarItem = ({ icon: Icon, label, to, active, onClick }) => {
 };
 
 const Sidebar = () => {
-  const { logout } = useAuth();
+  const { logout, isAdmin, isUser } = useAuth();
   const navigate = useNavigate();
 
   const location = useLocation();
@@ -113,13 +114,30 @@ const Sidebar = () => {
     setActiveItem(location.pathname);
   }, [location]);
 
+  const baseNavItems = [
+    { path: "/", label: "Dashboard", icon: MdSpaceDashboard },
+    { path: "/books", label: "Books", icon: IoBookSharp },
+  ];
+
   const navItems = [
     { path: "/", label: "Dashboard", icon: MdSpaceDashboard },
     { path: "/books", label: "Books", icon: IoBookSharp },
-    { path: "/catalog", label: "Catalog", icon: AiFillBook },
-    { path: "/users", label: "Users", icon: FaUsers },
-    // { path: '/add-admin', label: 'Add new Admin', icon: RiAdminFill }
   ];
+
+  if (isAdmin) {
+    navItems.push(
+      { path: "/catalog", label: "Catalog", icon: AiFillBook },
+      { path: "/users", label: "Users", icon: FaUsers }
+    );
+  }
+
+  if (isUser) {
+    navItems.push({
+      path: "/myBorrowedBooks",
+      label: "My Borrowed Books",
+      icon: RiBookShelfLine,
+    });
+  }
 
   const logoutUser = async () => {
     logout();
@@ -146,7 +164,7 @@ const Sidebar = () => {
           />
         ))}
 
-        {
+        {isAdmin && (
           <Dialog open={isAddAdminOpen} onOpenChange={setIsAddAdminOpen}>
             <DialogTrigger asChild>
               <div>
@@ -206,12 +224,12 @@ const Sidebar = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        }
+        )}
       </div>
 
       <div className="mt-auto p-4">
         <Button
-          className="bg-blue-900 hover:bg-blue-800 w-full text-white"
+          className="bg-blue-900 hover:bg-blue-800 w-full text-white cursor-pointer"
           onClick={logoutUser}
         >
           Logout

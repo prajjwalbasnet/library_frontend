@@ -43,7 +43,6 @@ const Catalog = () => {
           },
         }
       );
-      console.log(response.data.borrowedBooks);
       setBorrowedData(response.data.borrowedBooks);
     } catch (error) {
       console.log(error);

@@ -4,6 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Navbar from "../components/Navbar";
 import { Textarea } from "@/components/ui/textarea";
+import { MdPreview } from "react-icons/md";
+import { BsFileRichtextFill } from "react-icons/bs";
+import { FaBookmark } from "react-icons/fa";
+import { FaUser } from "react-icons/fa";
 import {
   Table,
   TableBody,
@@ -20,6 +24,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogClose,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
@@ -37,8 +42,12 @@ import axios from "axios";
 import { MdAssignment } from "react-icons/md";
 import { FaImage } from "react-icons/fa6";
 import { toast } from "react-toastify";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Books = () => {
+  const { user, isAdmin, isUser } = useAuth();
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -360,130 +369,132 @@ const Books = () => {
         <div className="mx-2 my-5">
           <h1 className="text-3xl text-blue-800 font-medium mb-5">Books</h1>
 
-          <div className="flex justify-end pr-3">
-            <Dialog open={isDialogOpen} onOpenChange={handleDialogOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  className="text-white bg-blue-800 hover:bg-blue-700"
-                  onClick={() => setIsEditMode(false)}
-                >
-                  Add Book
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>
-                    {isEditMode ? "Edit Book" : "Add a new Book"}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {isEditMode
-                      ? "Update the book information below."
-                      : "Fill in the details to add a new book to the library."}
-                  </DialogDescription>
-                </DialogHeader>
+          {isAdmin && (
+            <div className="flex justify-end pr-3">
+              <Dialog open={isDialogOpen} onOpenChange={handleDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    className="text-white bg-blue-800 hover:bg-blue-700"
+                    onClick={() => setIsEditMode(false)}
+                  >
+                    Add Book
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {isEditMode ? "Edit Book" : "Add a new Book"}
+                    </DialogTitle>
+                    <DialogDescription>
+                      {isEditMode
+                        ? "Update the book information below."
+                        : "Fill in the details to add a new book to the library."}
+                    </DialogDescription>
+                  </DialogHeader>
 
-                {error && (
-                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-                    {error}
-                  </div>
-                )}
-
-                <form onSubmit={submitHandler}>
-                  <div className="grid gap-4 py-4">
-                    <Input
-                      type="text"
-                      name="title"
-                      value={formData.title}
-                      onChange={handleChange}
-                      placeholder="Enter the title"
-                      className="col-span-3"
-                    />
-                    <Input
-                      placeholder="Enter the author"
-                      name="author"
-                      value={formData.author}
-                      onChange={handleChange}
-                      className="col-span-3"
-                    />
-                    <Textarea
-                      placeholder="Enter the description"
-                      name="description"
-                      value={formData.description}
-                      onChange={handleChange}
-                      className="col-span-3"
-                    />
-                    <Input
-                      placeholder="Enter the genre"
-                      name="genre"
-                      value={formData.genre}
-                      onChange={handleChange}
-                      className="col-span-3"
-                    />
-                    <Input
-                      type="number"
-                      placeholder="Total copies available"
-                      name="totalCopies"
-                      value={formData.totalCopies}
-                      onChange={handleChange}
-                      className="col-span-3"
-                    />
-                    <div className="rounded-md border border-blue-800 bg-gray-50 p-2 shadow-md w-30">
-                      <label
-                        htmlFor="upload"
-                        className="flex flex-col items-center gap-2 cursor-pointer"
-                      >
-                        {imagePreview ? (
-                          <img
-                            src={imagePreview}
-                            alt="Book cover preview"
-                            className="h-32 w-auto object-contain"
-                          />
-                        ) : (
-                          <>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-10 w-10 fill-white stroke-blue-800"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                              />
-                            </svg>
-                            <span className="text-gray-600 font-medium">
-                              {isEditMode
-                                ? "Change Cover Image"
-                                : "Cover Image"}
-                            </span>
-                          </>
-                        )}
-                      </label>
-                      <input
-                        id="upload"
-                        type="file"
-                        className="hidden"
-                        onChange={handleFileChange}
-                        accept="image/*"
-                      />
+                  {error && (
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+                      {error}
                     </div>
+                  )}
 
-                    <DialogFooter>
-                      <Button
-                        type="submit"
-                        className="text-white bg-blue-800 hover:bg-blue-700 w-20"
-                        disabled={loading}
-                      >
-                        {isEditMode ? "Update" : "Add"}
-                      </Button>
-                    </DialogFooter>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
+                  <form onSubmit={submitHandler}>
+                    <div className="grid gap-4 py-4">
+                      <Input
+                        type="text"
+                        name="title"
+                        value={formData.title}
+                        onChange={handleChange}
+                        placeholder="Enter the title"
+                        className="col-span-3"
+                      />
+                      <Input
+                        placeholder="Enter the author"
+                        name="author"
+                        value={formData.author}
+                        onChange={handleChange}
+                        className="col-span-3"
+                      />
+                      <Textarea
+                        placeholder="Enter the description"
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        className="col-span-3"
+                      />
+                      <Input
+                        placeholder="Enter the genre"
+                        name="genre"
+                        value={formData.genre}
+                        onChange={handleChange}
+                        className="col-span-3"
+                      />
+                      <Input
+                        type="number"
+                        placeholder="Total copies available"
+                        name="totalCopies"
+                        value={formData.totalCopies}
+                        onChange={handleChange}
+                        className="col-span-3"
+                      />
+                      <div className="rounded-md border border-blue-800 bg-gray-50 p-2 shadow-md w-30">
+                        <label
+                          htmlFor="upload"
+                          className="flex flex-col items-center gap-2 cursor-pointer"
+                        >
+                          {imagePreview ? (
+                            <img
+                              src={imagePreview}
+                              alt="Book cover preview"
+                              className="h-32 w-auto object-contain"
+                            />
+                          ) : (
+                            <>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-10 w-10 fill-white stroke-blue-800"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                />
+                              </svg>
+                              <span className="text-gray-600 font-medium">
+                                {isEditMode
+                                  ? "Change Cover Image"
+                                  : "Cover Image"}
+                              </span>
+                            </>
+                          )}
+                        </label>
+                        <input
+                          id="upload"
+                          type="file"
+                          className="hidden"
+                          onChange={handleFileChange}
+                          accept="image/*"
+                        />
+                      </div>
+
+                      <DialogFooter>
+                        <Button
+                          type="submit"
+                          className="text-white bg-blue-800 hover:bg-blue-700 w-20"
+                          disabled={loading}
+                        >
+                          {isEditMode ? "Update" : "Add"}
+                        </Button>
+                      </DialogFooter>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
 
           {loading && !books.length ? (
             <div className="flex justify-center items-center py-10">
@@ -495,18 +506,27 @@ const Books = () => {
                 <TableHeader>
                   <TableRow className="text-lg bg-gray-200">
                     <TableHead></TableHead>
-                    <TableHead>Books</TableHead>
+                    <TableHead className="column-sm">Books</TableHead>
                     <TableHead>Author</TableHead>
                     <TableHead>Availability</TableHead>
-                    <TableHead className="text-center">Record Book</TableHead>
-                    <TableHead className="w-[30px]"></TableHead>
+                    {isAdmin && (
+                      <TableHead className="text-center">Record Book</TableHead>
+                    )}
+                    {isAdmin && <TableHead className="w-[30px]"></TableHead>}
+                    {isUser && <TableHead className="w-[30px]">View</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {books.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={5}
+                        colSpan={
+                          user && user.role
+                            ? user.role === "Admin"
+                              ? 6
+                              : 5
+                            : 4
+                        }
                         className="text-center py-8 text-gray-500"
                       >
                         No books available
@@ -528,7 +548,9 @@ const Books = () => {
                             </div>
                           )}
                         </TableCell>
-                        <TableCell>{item.title}</TableCell>
+                        <TableCell className="max-w-[180px]">
+                          {item.title}
+                        </TableCell>
                         <TableCell>{item.author}</TableCell>
                         <TableCell>
                           <span
@@ -541,68 +563,126 @@ const Books = () => {
                             {!item.availability ? "Not available" : "Available"}
                           </span>
                         </TableCell>
-                        <TableCell className="text-center">
-                          {
+                        {isAdmin && (
+                          <TableCell className="text-center">
+                            {
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <MdAssignment className="text-2xl text-blue-800 cursor-pointer" />
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[425px]">
+                                  <DialogHeader>
+                                    <DialogTitle>Record Book</DialogTitle>
+                                    <DialogDescription>
+                                      Enter the email of the student that you
+                                      want to assign this book
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  <div className="grid gap-4 py-4">
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                      <Input
+                                        id="email"
+                                        value={studentEmail}
+                                        onChange={(e) =>
+                                          setStudentEmail(e.target.value)
+                                        }
+                                        placeholder="student@example.com"
+                                        type="email"
+                                        className="col-span-3"
+                                      />
+                                    </div>
+                                  </div>
+                                  <DialogFooter>
+                                    <Button
+                                      type="button"
+                                      onClick={() => recordBook(item._id)}
+                                      disabled={loading}
+                                      className="bg-blue-800 hover:bg-blue-700 text-white"
+                                    >
+                                      {loading ? "Assigning..." : "Assign Book"}
+                                    </Button>
+                                  </DialogFooter>
+                                </DialogContent>
+                              </Dialog>
+                            }
+                          </TableCell>
+                        )}
+                        {isAdmin && (
+                          <TableCell>
+                            <div className="flex gap-5 items-center justify-center">
+                              <Button
+                                className="cursor-pointer bg-blue-800 text-white hover:bg-blue-700 hover:text-white"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEdit(item)}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                className="cursor-pointer bg-[#CF0F47] text-white hover:bg-red-600 hover:text-white"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openDeleteConfirmation(item._id)}
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          </TableCell>
+                        )}
+                        {isUser && (
+                          <TableCell>
                             <Dialog>
                               <DialogTrigger asChild>
-                                <MdAssignment className="text-2xl text-blue-800 cursor-pointer" />
+                                <MdPreview className="text-3xl h-5 w-5 cursor-pointer text-blue-800" />
                               </DialogTrigger>
-                              <DialogContent className="sm:max-w-[425px]">
+                              <DialogContent className="sm:max-w-[500px]">
                                 <DialogHeader>
-                                  <DialogTitle>Record Book</DialogTitle>
+                                  <DialogTitle className="text-xl font-semibold">
+                                    {item.title}
+                                  </DialogTitle>
                                   <DialogDescription>
-                                    Enter the email of the student that you want
-                                    to assign this book
+                                    Complete details about this book
                                   </DialogDescription>
                                 </DialogHeader>
-                                <div className="grid gap-4 py-4">
-                                  <div className="grid grid-cols-4 items-center gap-4">
-                                    <Input
-                                      id="email"
-                                      value={studentEmail}
-                                      onChange={(e) =>
-                                        setStudentEmail(e.target.value)
-                                      }
-                                      placeholder="student@example.com"
-                                      type="email"
-                                      className="col-span-3"
-                                    />
+                                <div className="mt-4 space-y-4">
+                                  <div className="flex items-center gap-2">
+                                    <FaUser className="h-4 w-4 text-blue-800" />
+                                    <span className="font-medium">Author:</span>
+                                    <span>{item.author}</span>
+                                  </div>
+
+                                  <div className="flex items-center gap-2">
+                                    <FaBookmark className="h-4 w-4 text-blue-800" />
+                                    <span className="font-medium">Genre:</span>
+                                    <span>{item.genre}</span>
+                                  </div>
+
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                      <BsFileRichtextFill className="h-4 w-4 text-blue-800" />
+                                      <span className="font-medium">
+                                        Description:
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-gray-700 leading-relaxed pl-6">
+                                      {item.description}
+                                    </p>
                                   </div>
                                 </div>
-                                <DialogFooter>
-                                  <Button
-                                    type="button"
-                                    onClick={() => recordBook(item._id)}
-                                    disabled={loading}
-                                    className="bg-blue-800 hover:bg-blue-700 text-white"
-                                  >
-                                    {loading ? "Assigning..." : "Assign Book"}
-                                  </Button>
+                                <DialogFooter className="mt-6">
+                                  <DialogClose asChild>
+                                    <Button
+                                      size="sm"
+                                      className="bg-blue-800 text-white hover:bg-blue-700 hover:text-white"
+                                    >
+                                      Close
+                                    </Button>
+                                  </DialogClose>
                                 </DialogFooter>
                               </DialogContent>
                             </Dialog>
-                          }
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-5 items-center justify-center">
-                            <Button
-                              className="cursor-pointer bg-blue-800 text-white hover:bg-blue-700"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEdit(item)}
-                            >
-                              Edit
-                            </Button>
-                            <Button
-                              className="cursor-pointer bg-[#CF0F47] text-white hover:bg-red-600"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openDeleteConfirmation(item._id)}
-                            >
-                              Delete
-                            </Button>
-                          </div>
-                        </TableCell>
+                          </TableCell>
+                        )}
                       </TableRow>
                     ))
                   )}
