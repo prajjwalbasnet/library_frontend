@@ -173,39 +173,52 @@ const Catalog = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {borrowedData.map(
-                    (item) =>
-                      item.returned === false && (
-                        <TableRow key={item._id}>
-                          <TableCell className="font-medium">
-                            {item.user.studentId}
-                          </TableCell>
-                          <TableCell>{item.user.email}</TableCell>
-                          <TableCell>{item.book.title}</TableCell>
-                          <TableCell className="text-red-500">
-                            {new Date(item.dueDate).toLocaleDateString("en-GB")}
-                          </TableCell>
-                          <TableCell className="">
-                            {new Date(item.createdAt).toLocaleDateString(
-                              "en-GB"
-                            )}
-                          </TableCell>
-                          <TableCell className="">
-                            {item.returned ? (
-                              <Checkbox checked disabled />
-                            ) : (
-                              <Button
-                                className="text-white bg-blue-900 hover:bg-blue-700 hover:text-white "
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleOpenDialog(item)}
-                              >
-                                Return
-                              </Button>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      )
+                  {borrowedData.some((item) => item.notified === true) ? (
+                    borrowedData.map(
+                      (item) =>
+                        item.notified === true && (
+                          <TableRow key={item._id}>
+                            <TableCell className="font-medium">
+                              {item.user.studentId}
+                            </TableCell>
+                            <TableCell>{item.user.email}</TableCell>
+                            <TableCell>{item.book.title}</TableCell>
+                            <TableCell className="text-red-500">
+                              {new Date(item.dueDate).toLocaleDateString(
+                                "en-GB"
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {new Date(item.createdAt).toLocaleDateString(
+                                "en-GB"
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {item.returned ? (
+                                <Checkbox checked disabled />
+                              ) : (
+                                <Button
+                                  className="text-white bg-blue-900 hover:bg-blue-700 hover:text-white"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleOpenDialog(item)}
+                                >
+                                  Return
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        )
+                    )
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        className="text-center py-6 text-gray-500"
+                      >
+                        No book data available
+                      </TableCell>
+                    </TableRow>
                   )}
                 </TableBody>
               </Table>

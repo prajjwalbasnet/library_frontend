@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { MdPreview } from "react-icons/md";
 import { BsFileRichtextFill } from "react-icons/bs";
 import { FaBookmark } from "react-icons/fa";
 import { FaUser } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
 import {
   Table,
   TableBody,
@@ -63,6 +64,9 @@ const Books = () => {
   const [coverImage, setCoverImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
+  const [openSearch, setOpenSearch] = useState(false);
+  const searchContainerRef = useRef(null);
+
   const [formData, setFormData] = useState({
     title: "",
     author: "",
@@ -72,6 +76,25 @@ const Books = () => {
   });
 
   const API_URL = import.meta.env.VITE_BACKEND_URL;
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target)
+      ) {
+        setOpenSearch(false);
+      }
+    };
+
+    if (openSearch) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openSearch]);
 
   const fetchBooks = async () => {
     try {
@@ -367,20 +390,44 @@ const Books = () => {
 
         {/* -----Main content------ */}
         <div className="mx-2 my-5">
-          <h1 className="text-3xl text-blue-800 font-medium mb-5">Books</h1>
+          <h1 className="text-3xl text-blue-800 font-medium mb-5 mx-3">
+            Books
+          </h1>
 
-          {isAdmin && (
-            <div className="flex justify-end pr-3">
+          <div
+            className="flex items-center justify-end pr-3 gap-3"
+            ref={searchContainerRef}
+          >
+            <div>
+              <Input
+                placeholder="Search books here..."
+                width="500px"
+                className={`w-60 h-10 bg-gray-100 px-8 duration-300 ease-in-out ${
+                  openSearch === true ? "" : "hidden"
+                }`}
+              />
+              {isAdmin && (
+                <div
+                  className={`bg-gray-200 rounded-full p-2 cursor-pointer  ${
+                    openSearch === true ? "hidden" : ""
+                  }`}
+                  onClick={() => setOpenSearch(!openSearch)}
+                >
+                  <FaSearch className={`text-gray-500`} />
+                </div>
+              )}
+            </div>
+            {isAdmin && (
               <Dialog open={isDialogOpen} onOpenChange={handleDialogOpen}>
                 <DialogTrigger asChild>
                   <Button
-                    className="text-white bg-blue-800 hover:bg-blue-700"
+                    className="text-white bg-blue-800 hover:bg-blue-700 cursor-pointer"
                     onClick={() => setIsEditMode(false)}
                   >
                     Add Book
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>
                       {isEditMode ? "Edit Book" : "Add a new Book"}
@@ -493,15 +540,15 @@ const Books = () => {
                   </form>
                 </DialogContent>
               </Dialog>
-            </div>
-          )}
+            )}
+          </div>
 
           {loading && !books.length ? (
             <div className="flex justify-center items-center py-10">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900"></div>
             </div>
           ) : (
-            <div className="mt-3">
+            <div className="mt-3 mx-3">
               <Table>
                 <TableHeader>
                   <TableRow className="text-lg bg-gray-200">
@@ -512,7 +559,6 @@ const Books = () => {
                     {isAdmin && (
                       <TableHead className="text-center">Record Book</TableHead>
                     )}
-                    {isAdmin && <TableHead className="w-[30px]"></TableHead>}
                     {isUser && <TableHead className="w-[30px]">View</TableHead>}
                   </TableRow>
                 </TableHeader>
@@ -563,23 +609,31 @@ const Books = () => {
                             {!item.availability ? "Not available" : "Available"}
                           </span>
                         </TableCell>
+
                         {isAdmin && (
-                          <TableCell className="text-center">
-                            {
+                          <TableCell>
+                            <div className="flex items-center justify-center space-x-2">
+                              {/* Assign Book Dialog */}
                               <Dialog>
                                 <DialogTrigger asChild>
-                                  <MdAssignment className="text-2xl text-blue-800 cursor-pointer" />
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-blue-700 hover:text-blue-800 hover:bg-blue-50 cursor-pointer"
+                                  >
+                                    <MdAssignment className="h-7 w-7 " />
+                                  </Button>
                                 </DialogTrigger>
                                 <DialogContent className="sm:max-w-[425px]">
                                   <DialogHeader>
-                                    <DialogTitle>Record Book</DialogTitle>
+                                    <DialogTitle>Assign Book</DialogTitle>
                                     <DialogDescription>
-                                      Enter the email of the student that you
-                                      want to assign this book
+                                      Enter the email of the student you want to
+                                      assign this book to
                                     </DialogDescription>
                                   </DialogHeader>
-                                  <div className="grid gap-4 py-4">
-                                    <div className="grid grid-cols-4 items-center gap-4">
+                                  <div className="py-4">
+                                    <div className="flex items-center gap-2">
                                       <Input
                                         id="email"
                                         value={studentEmail}
@@ -588,7 +642,7 @@ const Books = () => {
                                         }
                                         placeholder="student@example.com"
                                         type="email"
-                                        className="col-span-3"
+                                        className="flex-1"
                                       />
                                     </div>
                                   </div>
@@ -597,32 +651,41 @@ const Books = () => {
                                       type="button"
                                       onClick={() => recordBook(item._id)}
                                       disabled={loading}
-                                      className="bg-blue-800 hover:bg-blue-700 text-white"
+                                      className="bg-blue-700 hover:bg-blue-800 text-white cursor-pointer"
                                     >
-                                      {loading ? "Assigning..." : "Assign Book"}
+                                      {loading ? (
+                                        <>
+                                          <span className="mr-2">
+                                            Assigning
+                                          </span>
+                                          <span className="animate-pulse">
+                                            ...
+                                          </span>
+                                        </>
+                                      ) : (
+                                        "Assign Book"
+                                      )}
                                     </Button>
                                   </DialogFooter>
                                 </DialogContent>
                               </Dialog>
-                            }
-                          </TableCell>
-                        )}
-                        {isAdmin && (
-                          <TableCell>
-                            <div className="flex gap-5 items-center justify-center">
+
+                              {/* Edit Button */}
                               <Button
-                                className="cursor-pointer bg-blue-800 text-white hover:bg-blue-700 hover:text-white"
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
                                 onClick={() => handleEdit(item)}
+                                className="text-blue-700 border-blue-200 hover:text-white hover:bg-blue-700 cursor-pointer"
                               >
                                 Edit
                               </Button>
+
+                              {/* Delete Button */}
                               <Button
-                                className="cursor-pointer bg-[#CF0F47] text-white hover:bg-red-600 hover:text-white"
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
                                 onClick={() => openDeleteConfirmation(item._id)}
+                                className="text-red-600 border-red-200 hover:text-white hover:bg-red-500 cursor-pointer"
                               >
                                 Delete
                               </Button>

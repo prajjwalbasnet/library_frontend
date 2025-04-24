@@ -26,9 +26,50 @@ const MyBorrowedBooks = () => {
     loadUser();
   }, []);
 
+  // Helper function to render appropriate table content
+  const renderBooksTable = (isReturned) => {
+    if (!user || !user.borrowedBooks || user.borrowedBooks.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={5} className="text-center py-4">
+            No books data available
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    const filteredBooks = user.borrowedBooks.filter(
+      (book) => book.returned === isReturned
+    );
+
+    if (filteredBooks.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={5} className="text-center py-4">
+            {isReturned ? "No returned books" : "No borrowed books"}
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return filteredBooks.map((item) => (
+      <TableRow key={item.bookId}>
+        <TableCell className="font-medium">{item.bookTitle}</TableCell>
+        <TableCell>
+          {new Date(item.borrowedDate).toLocaleDateString("en-GB")}
+        </TableCell>
+        <TableCell>
+          {new Date(item.dueDate).toLocaleDateString("en-GB")}
+        </TableCell>
+        <TableCell>{isReturned ? "Yes" : "No"}</TableCell>
+        <TableCell></TableCell>
+      </TableRow>
+    ));
+  };
+
   return (
     <div className="flex h-screen w-screen overflow-hidden">
-      {/* ------Sidebar------- */}
+      {/* Sidebar */}
       <Sidebar />
 
       <div className="flex flex-col flex-1 overflow-hidden">
@@ -50,78 +91,34 @@ const MyBorrowedBooks = () => {
                 Non-Returned Books
               </TabsTrigger>
             </TabsList>
+
             <TabsContent value="returned" className="m-2">
               <Table>
                 <TableHeader className="bg-gray-200">
                   <TableRow>
-                    <TableHead className="">Book Title</TableHead>
+                    <TableHead>Book Title</TableHead>
                     <TableHead>Date & Time</TableHead>
                     <TableHead>Due Date</TableHead>
                     <TableHead>Returned</TableHead>
-                    <TableHead className="">View</TableHead>
+                    <TableHead>View</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
-                  {user &&
-                    user.borrowedBooks.map(
-                      (item) =>
-                        item.returned === true && (
-                          <TableRow key={item.bookId}>
-                            <TableCell className="font-medium">
-                              {item.bookTitle}
-                            </TableCell>
-                            <TableCell>
-                              {new Date(item.borrowedDate).toLocaleDateString(
-                                "en-GB"
-                              )}
-                            </TableCell>
-                            <TableCell className="">
-                              {new Date(item.dueDate).toLocaleDateString(
-                                "en-GB"
-                              )}
-                            </TableCell>
-                            <TableCell className="">Yes</TableCell>
-                          </TableRow>
-                        )
-                    )}
-                </TableBody>
+                <TableBody>{renderBooksTable(true)}</TableBody>
               </Table>
             </TabsContent>
+
             <TabsContent value="non-returned" className="m-2">
               <Table>
                 <TableHeader className="bg-gray-200">
                   <TableRow>
-                    <TableHead className="">Book Title</TableHead>
+                    <TableHead>Book Title</TableHead>
                     <TableHead>Date & Time</TableHead>
                     <TableHead>Due Date</TableHead>
                     <TableHead>Returned</TableHead>
-                    <TableHead className="">View</TableHead>
+                    <TableHead>View</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
-                  {user &&
-                    user.borrowedBooks.map(
-                      (item) =>
-                        item.returned === false && (
-                          <TableRow key={item.bookId}>
-                            <TableCell className="font-medium">
-                              {item.bookTitle}
-                            </TableCell>
-                            <TableCell>
-                              {new Date(item.borrowedDate).toLocaleDateString(
-                                "en-GB"
-                              )}
-                            </TableCell>
-                            <TableCell className="">
-                              {new Date(item.dueDate).toLocaleDateString(
-                                "en-GB"
-                              )}
-                            </TableCell>
-                            <TableCell className="">No</TableCell>
-                          </TableRow>
-                        )
-                    )}
-                </TableBody>
+                <TableBody>{renderBooksTable(false)}</TableBody>
               </Table>
             </TabsContent>
           </Tabs>

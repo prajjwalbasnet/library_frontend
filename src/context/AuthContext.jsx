@@ -110,7 +110,6 @@ export const AuthProvider = ({ children }) => {
       }
 
       setLoading(false);
-      console.log(response.data.user);
       return response.data;
     } catch (error) {
       console.error("Login error:", error);
@@ -147,7 +146,6 @@ export const AuthProvider = ({ children }) => {
     try {
       // Call the backend logout endpoint with proper error handling
       await axios.post(`${API_URL}/api/user/logout`);
-      console.log("Logout API call successful");
     } catch (error) {
       console.error("Error during logout:", error);
       // Don't let API errors prevent logout
@@ -156,7 +154,6 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       localStorage.removeItem("auth_token");
       delete axios.defaults.headers.common["Authorization"];
-      console.log("Local logout completed");
     }
 
     return true;
