@@ -24,18 +24,8 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden">
-      {/* ------Sidebar------- */}
-      <Sidebar />
-
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Navbar />
-
-        {/* -----Main content------ */}
-        <div className="w-full">
-          <div className="">{isAdmin && <AdminHero />}</div>
-        </div>
-      </div>
+    <div className="w-full">
+      <div className="">{isAdmin && <AdminHero />}</div>
     </div>
   );
 };

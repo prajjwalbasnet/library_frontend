@@ -22,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { MdAdminPanelSettings } from "react-icons/md";
 import { RxAvatar } from "react-icons/rx";
+import { FaTimes } from "react-icons/fa";
 
 const SidebarItem = ({ icon: Icon, label, to, active, onClick }) => {
   if (onClick) {
@@ -85,7 +86,7 @@ const SidebarItem = ({ icon: Icon, label, to, active, onClick }) => {
   }
 };
 
-const Sidebar = () => {
+const Sidebar = ({ onCloseMobile }) => {
   const { logout, isAdmin, isUser } = useAuth();
   const navigate = useNavigate();
 
@@ -113,11 +114,6 @@ const Sidebar = () => {
   useEffect(() => {
     setActiveItem(location.pathname);
   }, [location]);
-
-  const baseNavItems = [
-    { path: "/", label: "Dashboard", icon: MdSpaceDashboard },
-    { path: "/books", label: "Books", icon: IoBookSharp },
-  ];
 
   const navItems = [
     { path: "/", label: "Dashboard", icon: MdSpaceDashboard },
@@ -147,21 +143,37 @@ const Sidebar = () => {
     }, 1000);
   };
 
+  // Close sidebar on mobile when navigating to a new page
+  const handleNavLinkClick = () => {
+    if (window.innerWidth < 768 && onCloseMobile) {
+      onCloseMobile();
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen w-[240px] border-r border-gray-200 shadow-xl bg-white">
+      {/* Close button for mobile - only visible on smaller screens */}
+      <button
+        className="md:hidden absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+        onClick={onCloseMobile}
+      >
+        <FaTimes className="text-xl" />
+      </button>
+
       <div className="flex items-center justify-center py-6">
         <img className="max-w-[110px]" src={logo} alt="CIHE Library" />
       </div>
 
       <div className="flex flex-col px-3 gap-2 mt-4">
         {navItems.map((item) => (
-          <SidebarItem
-            key={item.path}
-            to={item.path}
-            icon={item.icon}
-            label={item.label}
-            active={activeItem === item.path}
-          />
+          <div key={item.path} onClick={handleNavLinkClick}>
+            <SidebarItem
+              to={item.path}
+              icon={item.icon}
+              label={item.label}
+              active={activeItem === item.path}
+            />
+          </div>
         ))}
 
         {isAdmin && (
