@@ -7,6 +7,7 @@ import { BsFileRichtextFill } from "react-icons/bs";
 import { FaBookmark } from "react-icons/fa";
 import { FaUser } from "react-icons/fa";
 import { FaSearch } from "react-icons/fa";
+import { FaSpinner } from "react-icons/fa"; // Added for loading spinner
 import {
   Table,
   TableBody,
@@ -48,6 +49,7 @@ const Books = () => {
   const { user, isAdmin, isUser } = useAuth();
 
   const [loading, setLoading] = useState(false);
+  const [reserving, setReserving] = useState(false); // Added for reservation loading state
   const [error, setError] = useState(null);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -378,6 +380,52 @@ const Books = () => {
     }
   };
 
+  // New reservation function
+  const reserveBook = async (bookId) => {
+    try {
+      setReserving(true);
+
+      const response = await axios.post(
+        `${API_URL}/api/reservation/reserve`,
+        { bookId },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success(response.data.message || "Book reserved successfully");
+        fetchBooks(); // Refresh book list to update availability
+      } else {
+        toast.error(response.data.message || "Failed to reserve book");
+      }
+    } catch (error) {
+      console.error("Error reserving book:", error);
+
+      if (error.response) {
+        switch (error.response.status) {
+          case 400:
+            toast.error(
+              error.response.data.message ||
+                "You already have reserved this book"
+            );
+            break;
+          case 404:
+            toast.error("Book not found");
+            break;
+          default:
+            toast.error(error.response.data.message || "Error reserving book");
+        }
+      } else {
+        toast.error("Network error. Please check your connection.");
+      }
+    } finally {
+      setReserving(false);
+    }
+  };
+
   // Filter books based on search term
   const filteredBooks = books.filter(
     (book) =>
@@ -467,8 +515,46 @@ const Books = () => {
                       {book.description}
                     </p>
                   </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Availability:</span>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        !book.availability
+                          ? "bg-red-100 text-red-800"
+                          : "bg-green-100 text-green-800"
+                      }`}
+                    >
+                      {!book.availability ? "Not available" : "Available"}
+                    </span>
+                  </div>
                 </div>
                 <DialogFooter className="mt-6">
+                  {book.availability ? (
+                    <Button
+                      size="sm"
+                      className="bg-green-600 text-white hover:bg-green-700 hover:text-white"
+                      onClick={() => reserveBook(book._id)}
+                      disabled={reserving}
+                    >
+                      {reserving ? (
+                        <>
+                          <FaSpinner className="animate-spin mr-2" />
+                          Reserving...
+                        </>
+                      ) : (
+                        "Reserve Now"
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      className="bg-gray-400 text-white cursor-not-allowed"
+                      disabled
+                    >
+                      Not Available
+                    </Button>
+                  )}
                   <DialogClose asChild>
                     <Button
                       size="sm"
@@ -562,7 +648,7 @@ const Books = () => {
   };
 
   return (
-    <div className="p-4 md:p-6">
+    <div className="p-3 md:p-5">
       <h1 className="text-2xl md:text-3xl text-blue-800 font-medium mb-4">
         Books
       </h1>
@@ -938,12 +1024,54 @@ const Books = () => {
                                       {item.description}
                                     </p>
                                   </div>
+
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium">
+                                      Availability:
+                                    </span>
+                                    <span
+                                      className={`px-2 py-1 rounded-full text-xs ${
+                                        !item.availability
+                                          ? "bg-red-100 text-red-800"
+                                          : "bg-green-100 text-green-800"
+                                      }`}
+                                    >
+                                      {!item.availability
+                                        ? "Not available"
+                                        : "Available"}
+                                    </span>
+                                  </div>
                                 </div>
                                 <DialogFooter className="mt-6">
+                                  {item.availability ? (
+                                    <Button
+                                      size="sm"
+                                      className="bg-green-600 text-white hover:bg-green-700 hover:text-white cursor-pointer"
+                                      onClick={() => reserveBook(item._id)}
+                                      disabled={reserving}
+                                    >
+                                      {reserving ? (
+                                        <>
+                                          <FaSpinner className="animate-spin mr-2" />
+                                          Reserving...
+                                        </>
+                                      ) : (
+                                        "Reserve Now"
+                                      )}
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      size="sm"
+                                      className="bg-gray-400 text-white cursor-not-allowed"
+                                      disabled
+                                    >
+                                      Not Available
+                                    </Button>
+                                  )}
                                   <DialogClose asChild>
                                     <Button
                                       size="sm"
-                                      className="bg-blue-800 text-white hover:bg-blue-700 hover:text-white"
+                                      className="bg-blue-800 text-white hover:bg-blue-700 hover:text-white cursor-pointer"
                                     >
                                       Close
                                     </Button>

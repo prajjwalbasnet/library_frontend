@@ -10,6 +10,7 @@ import Catalog from "./pages/Catalog";
 import Users from "./pages/Users";
 import MyBorrowedBooks from "./pages/MyBorrowedBooks";
 import Layout from "./components/Layout"; // Import the new Layout component
+import Reservations from "./pages/Reservations";
 
 function App() {
   return (
@@ -34,6 +35,14 @@ function App() {
           element={
             <Layout>
               <Books />
+            </Layout>
+          }
+        />
+        <Route
+          path="/reservations"
+          element={
+            <Layout>
+              <Reservations />
             </Layout>
           }
         />

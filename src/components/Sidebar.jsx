@@ -5,11 +5,13 @@ import { IoBookSharp } from "react-icons/io5";
 import { AiFillBook } from "react-icons/ai";
 import { FaUsers } from "react-icons/fa";
 import { RiAdminFill } from "react-icons/ri";
+import { FaAddressBook } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import { RiBookShelfLine } from "react-icons/ri";
+import { RiReservedLine } from "react-icons/ri"; // Added for reservations icon
 import {
   Dialog,
   DialogContent,
@@ -115,24 +117,35 @@ const Sidebar = ({ onCloseMobile }) => {
     setActiveItem(location.pathname);
   }, [location]);
 
+  // Define base navigation items for everyone
   const navItems = [
     { path: "/", label: "Dashboard", icon: MdSpaceDashboard },
     { path: "/books", label: "Books", icon: IoBookSharp },
   ];
 
+  // Add admin-specific navigation items
   if (isAdmin) {
     navItems.push(
-      { path: "/catalog", label: "Catalog", icon: AiFillBook },
-      { path: "/users", label: "Users", icon: FaUsers }
+      {
+        path: "/reservations",
+        label: "All Reservations",
+        icon: RiReservedLine,
+      },
+      { path: "/users", label: "Users", icon: FaUsers },
+      { path: "/catalog", label: "Catalog", icon: AiFillBook }
     );
   }
 
+  // Add user-specific navigation items
   if (isUser) {
-    navItems.push({
-      path: "/myBorrowedBooks",
-      label: "My Borrowed Books",
-      icon: RiBookShelfLine,
-    });
+    navItems.push(
+      {
+        path: "/myBorrowedBooks",
+        label: "My Borrowed Books",
+        icon: RiBookShelfLine,
+      },
+      { path: "/reservations", label: "My Reservations", icon: RiReservedLine }
+    );
   }
 
   const logoutUser = async () => {
