@@ -35,7 +35,7 @@ import { RiReservedLine } from "react-icons/ri";
 import { toast } from "react-toastify";
 
 const MyReservations = () => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, API_URL } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,8 +44,6 @@ const MyReservations = () => {
   const [openSearch, setOpenSearch] = useState(false);
   const [userFilter, setUserFilter] = useState("");
   const searchContainerRef = useRef(null);
-
-  const API_URL = import.meta.env.VITE_BACKEND_URL;
 
   // Handle click outside search container
   useEffect(() => {
